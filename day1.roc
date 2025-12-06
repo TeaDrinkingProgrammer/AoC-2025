@@ -6,7 +6,8 @@ import pf.Stdout
 import "data/day1.txt" as input : Str
 
 main! = |_args|
-    Stdout.line!("Answer to part 1: ${Num.to_str(part1 input)}")
+    _ = Stdout.line!("Answer to part 1: ${Num.to_str(part1 input)}")
+    Stdout.line!("Answer to part 2: ${Num.to_str(part2 input)}")
 
 example =
     """
@@ -22,20 +23,16 @@ example =
     L82
     """
 
-expect
-    result = part1(example)
-    result == 3
-
 part1_walker = |acc, rotation|
     (dial, password) = acc
     # Part 1
     num = dial + rotation
 
     _ = dbg("${Num.to_str(num)}")
-
     new_dial =
         if num < 0 or num >= 100 then
-            num % 100
+            # Implement a positive sign modulo like Python, with a little bit of help from AI
+            ((num % 100) + 100) % 100
         else
             num
 
@@ -46,6 +43,47 @@ part1_walker = |acc, rotation|
         (new_dial, password + 1)
     else
         (new_dial, password)
+
+expect
+    _ = dbg("--Part 1--")
+    result = part1(example)
+    result == 3
+
+part2_walker = |acc, rotation|
+    (dial, password) = acc
+    # Part 1
+    num = dial + rotation
+
+    _ = dbg("${Num.to_str(num)}")
+
+    new_dial =
+        if num < 0 or num >= 100 then
+            # Implement a positive sign modulo like Python, with a little bit of help from AI
+            ((num % 100) + 100) % 100
+        else
+            num
+
+    debug = "Enter walk rotation:${Num.to_str(rotation)}, dial:${Num.to_str(new_dial)}"
+    _ = dbg(debug)
+    pass_through_zero =
+        if (num < -100 or num > 100) then
+            _ = dbg("${Num.to_str(dial)} + Num.abs(${Num.to_str(rotation)}) // 100 =")
+            (dial + Num.abs(rotation)) // 100
+        else if (-100 < num and num < 0 and dial != 0) then
+            1
+        else
+            0
+    _ = dbg("Passed through zero ${Num.to_str(pass_through_zero)} times")
+    if new_dial == 0 then
+        _ = dbg("Points at zero")
+        (new_dial, (password + 1) + pass_through_zero)
+    else
+        (new_dial, password + pass_through_zero)
+
+expect
+    _ = dbg("--Part 2--")
+    result = part2(example)
+    result == 6
 
 generic = |text, walker|
     lines = inputToLists(text)
@@ -61,6 +99,9 @@ generic = |text, walker|
 
 part1 = |text|
     generic(text, part1_walker)
+
+part2 = |text|
+    generic(text, part2_walker)
 
 parse_rotation : Str -> Result I64 _
 parse_rotation = |line|
